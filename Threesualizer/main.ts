@@ -1,61 +1,28 @@
 import './src/style.css';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { AudioHelper, SongPlayer } from './audio';
+import { AudioAnalyzer, SongPlayer } from './src/audio-analyzer';
+import { MainScene } from './src/main-scene';
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth / window.innerHeight, 0.1, 1000);
-const canvas = document.querySelector('#bg') as HTMLCanvasElement;
-const renderer = new THREE.WebGLRenderer({
-    canvas
-});
-const controls = new OrbitControls(camera, renderer.domElement);
-
-
-//
-// 3D stuff
-//
-
-{
-    const gridHelper = new THREE.GridHelper(200, 50);
-    scene.add(gridHelper);
-
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.position.setZ(30);
-
-
-    const spaceTexture = new THREE.TextureLoader().load('space.jpg');
-    scene.background = spaceTexture;
-}
-
-
-const audio = new AudioHelper();
+const audio = new AudioAnalyzer();
 audio.init('./genesis.mp3');
-const songPlayer = new SongPlayer('./genesis.mp3', 1, false);
-songPlayer.start();
 
-var clock = new THREE.Clock();
-var time = 0;
+// const songPlayer = new SongPlayer('./genesis.mp3', 1, false);
+// songPlayer.start();
 
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+const scene = new MainScene();
+
+const clock = new THREE.Clock();
+let time = 0;
+
+
+audio.analysis$.subscribe(analysis => scene.visualizeAudioAnalysis(analysis));
+
+function mainLoop() {
+    requestAnimationFrame(mainLoop);
+    scene.render();
     time += clock.getDelta();
-    audio.drawAtTime(time);
+    audio.analyzeAtTime(time);
 }
   
-animate();
+mainLoop();

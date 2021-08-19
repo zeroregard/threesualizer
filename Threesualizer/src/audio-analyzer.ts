@@ -1,8 +1,10 @@
-import { transform } from './fft';
+import { transform } from '../fft';
+import { Subject } from 'rxjs';
 
-export class AudioHelper {
+export class AudioAnalyzer {
     private _audioContext = new AudioContext();
     private _rawBuffer: AudioBuffer | undefined;
+    public analysis$: Subject<number[]> = new Subject();
 
     constructor() {
         window.AudioContext = window.AudioContext;
@@ -19,13 +21,13 @@ export class AudioHelper {
             });
     }
 
-    drawAtTime(time: number) {
+    analyzeAtTime(time: number) {
         if (this._rawBuffer?.sampleRate) {
             const samples = this.samplesAtTime(time).map(sample => sample * 2 - 1) // 0..1 -> -1..1
             let realData = Float64Array.from(samples);
             let imaginaryData = Float64Array.from(Array.of(...samples).fill(0));
             transform(realData, imaginaryData);
-            this.drawData(samples);
+            this.drawData(realData);
         }
     }
 
@@ -51,6 +53,7 @@ export class AudioHelper {
 
         // draw the line segments
         const width = canvas.offsetWidth / normalizedData.length;
+        const map = [];
         for (let i = 0; i < normalizedData.length; i++) {
             const x = width * i;
             let height = normalizedData[i] * canvas.offsetHeight - padding;
@@ -59,8 +62,9 @@ export class AudioHelper {
             } else if (height > canvas.offsetHeight / 2) {
                 height = height - canvas.offsetHeight / 2;
             }
-            this.drawLineSegment(ctx, x, height * 0.5, width, (i + 1) % 2 ? true : false);
+            map.push(height);
         }
+        this.analysis$.next(map);
     };
 
     private filterData(rawData: Float32Array, samples = 32) {
