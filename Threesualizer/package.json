@@ -1,0 +1,15 @@
+{
+  "name": "threesualizer",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.131.0",
+    "typefft": "0.0.2",
+    "typescript": "^4.3.2",
+    "vite": "^2.4.4"
+  }
+}
