@@ -16,12 +16,12 @@ const clock = new THREE.Clock();
 let time = 0;
 
 
-audio.analysis$.subscribe(analysis => scene.visualizeAudioAnalysis(analysis));
+audio.analysis$.subscribe(analysis => scene.visualizeAudioAnalysis(analysis, time));
 
 function mainLoop() {
     requestAnimationFrame(mainLoop);
-    scene.render();
     time += clock.getDelta();
+    scene.render(time);
     audio.analyzeAtTime(time);
 }
   
