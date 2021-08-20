@@ -67,7 +67,7 @@ export class AudioAnalyzer {
         this.analysis$.next(map);
     };
 
-    private filterData(rawData: Float32Array, samples = 32) {
+    private filterData(rawData: Float32Array, samples = 128) {
         const blockSize = Math.floor(rawData.length / samples); // the number of samples in each subdivision
         const filteredData = [];
         for (let i = 0; i < samples; i++) {
@@ -85,18 +85,6 @@ export class AudioAnalyzer {
         const multiplier = Math.pow(Math.max(...filteredData), -1);
         return filteredData.map(n => n * multiplier);
     }
-
-    private drawLineSegment(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, isEven: boolean) {
-        ctx.lineWidth = 4; // how thick the line is
-        ctx.strokeStyle = "#00FF00"; // what color our line is
-        ctx.beginPath();
-        y = isEven ? y : -y;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, y);
-        ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
-        ctx.lineTo(x + width, 0);
-        ctx.stroke();
-    };
 
 }
 
