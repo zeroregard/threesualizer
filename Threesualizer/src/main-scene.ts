@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OneMinusDstAlphaFactor } from 'three';
+import { Color, OneMinusDstAlphaFactor } from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Effects } from './effects';
 
@@ -27,6 +27,9 @@ export class MainScene {
         light.position.set(0, 0.5, 1);
         this.scene.add(light);
 
+        const ambientLight = new THREE.AmbientLight(0x222222);
+        this.scene.add(ambientLight);
+
         //const gridHelper = new THREE.GridHelper(200, 50);
         //this.scene.add(gridHelper);
 
@@ -45,16 +48,21 @@ export class MainScene {
         window.addEventListener( 'resize', () => this.onWindowResize() );
     }
 
+    private materials: THREE.MeshStandardMaterial[] = [];
+
     visualizeAudioAnalysis(analysis: number[], time: number, deltaTime: number) {
         const skip = 1;
         const widthSpacing = 2;
         const intensityNormalized =  Math.max(analysis.reduce((a, b) => a + b, 0) / 100000 - 1, 0);
-        const intensityMultiplier = Math.pow(intensityNormalized, 2);   
-        const emissive = new THREE.Color(0x00000020).lerp(new THREE.Color(0x00ff0050), intensityNormalized*3);
+        const intensityMultiplier = Math.pow(intensityNormalized, 2);
+
         if(this.cubes.length == 0) {
             for (let i = skip; i < analysis.length; i++) {
                 const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const material = new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: emissive });
+
+
+                const material = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x000000 });
+                this.materials.push(material);
                 const cube = new THREE.Mesh(geometry, material);
                 // set this.cubes at center of scene
                 cube.position.set(i * widthSpacing - ((analysis.length*widthSpacing)/2), 0, 0);
@@ -62,16 +70,19 @@ export class MainScene {
                 this.scene.add(cube);
             }
         }
-
-        
-        
+     
         const heightMultiplier = 0.005;
         for (let i = skip; i < analysis.length; i++) {
             const height = analysis[i] * heightMultiplier;
             const cube = this.cubes[i];
-            cube.scale.lerp(new THREE.Vector3(1, 1+ intensityMultiplier*2 + height, 1), 0.25);
-            cube.rotation.y = Math.sin(time*intensityMultiplier/1000);
-            cube.rotation.x = 0.1*Math.sin(time*0.01*intensityMultiplier);
+            if(this.materials[i]) {
+                const hue = (i/analysis.length)*90+time*90 + 10 * intensityMultiplier;
+                const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                const emissive = new THREE.Color(0x00000000).lerp(color, intensityMultiplier);
+                this.materials[i].emissive.set(emissive);
+                this.materials[i].color.set(color);
+            }
+            cube.scale.lerp(new THREE.Vector3(1, 1+ intensityMultiplier*2 + height, 1), 0.01 + deltaTime);
             const pos = this.cubes[i].position; 
             const zigZagX = 2*intensityMultiplier*Math.sin(i*0.05+time)*0.25;
             const zigZagY = 0.5*intensityMultiplier*Math.cos(i*0.05+5*time) * 4 +  0.5*intensityMultiplier*Math.cos(i*0.05+2*time) * 4
@@ -81,7 +92,7 @@ export class MainScene {
             const y = analysis[i] * heightMultiplier - intensityMultiplier;
             const z = pos.z + Math.cos(time) + 0.25 * Math.sin(time * 0.5);
 
-            cube.position.lerp(new THREE.Vector3(x + zigZagX, 15 + y + zigZagY, z+ zigZagZ), 0.1);
+            cube.position.lerp(new THREE.Vector3(x + zigZagX, 15 + y + zigZagY, z+ zigZagZ), 0.1 + deltaTime);
         } 
     }
 

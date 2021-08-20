@@ -9,6 +9,7 @@ export class AudioAnalyzer {
     constructor() {
         window.AudioContext = window.AudioContext;
         this._audioContext = new AudioContext();
+        this._audioContext.resume();
 
     }
 
