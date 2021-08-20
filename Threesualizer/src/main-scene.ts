@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { Effects } from './effects';
 
 export class MainScene {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, innerWidth / window.innerHeight, 0.1, 1000);
     canvas = document.querySelector('#bg') as HTMLCanvasElement;
     renderer = new THREE.WebGLRenderer({
+        antialias: true,
         canvas: this.canvas
     });
     cubes: THREE.Mesh[] = [];
@@ -24,11 +26,14 @@ export class MainScene {
         light.position.set(0, 0.5, 1);
         this.scene.add(light);
 
-        const gridHelper = new THREE.GridHelper(200, 50);
-        this.scene.add(gridHelper);
+        //const gridHelper = new THREE.GridHelper(200, 50);
+        //this.scene.add(gridHelper);
 
+        
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.camera.position.setZ(30);
 
         const spaceTexture = new THREE.TextureLoader().load('space.jpg');
@@ -36,6 +41,7 @@ export class MainScene {
 
         this.camera.position.set(30, 6.44, 20);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        window.addEventListener( 'resize', () => this.onWindowResize() );
     }
 
     visualizeAudioAnalysis(analysis: number[]) {
@@ -71,7 +77,23 @@ export class MainScene {
         }
     }
 
+
+
+    onWindowResize() {
+
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+
+        this.renderer.setSize( width, height );
+        this.renderer.setSize( width, height );
+
+    }
+
+    private _effects: Effects = new Effects(this.renderer, this.scene, this.camera);
+
     render() {
-        this.renderer.render(this.scene, this.camera);
+        this._effects.render();
     }
 }
