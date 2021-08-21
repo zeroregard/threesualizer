@@ -9,6 +9,7 @@ export class Effects {
     private _shader;
 
 
+// howdy pardner
 
     constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera) {
         this._renderPass = new RenderPass( scene, camera );

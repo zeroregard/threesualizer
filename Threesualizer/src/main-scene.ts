@@ -11,7 +11,7 @@ export class MainScene {
         antialias: true,
         canvas: this.canvas
     });
-    cubes: THREE.Mesh[] = [];
+    cubes: THREE.Mesh[][] = [];
     lights: THREE.Light[] = [];
 
     controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -48,52 +48,52 @@ export class MainScene {
         window.addEventListener( 'resize', () => this.onWindowResize() );
     }
 
-    private materials: THREE.MeshStandardMaterial[] = [];
+    private materials: THREE.MeshStandardMaterial[][] = [];
 
-    visualizeAudioAnalysis(analysis: number[], time: number, deltaTime: number) {
-        const skip = 1;
+    visualizeAudioAnalysis(analysis: number[][], time: number, deltaTime: number) {
         const widthSpacing = 2;
-        const intensityNormalized =  Math.max(analysis.reduce((a, b) => a + b, 0) / 100000 - 1, 0);
-        const intensityMultiplier = Math.pow(intensityNormalized, 2);
-
         if(this.cubes.length == 0) {
-            for (let i = skip; i < analysis.length; i++) {
+            this.setupGrid(analysis, widthSpacing);
+        }
+
+     
+        const heightMultiplier = 0.005;
+        for(let z = 0; z < analysis.length; z++) {
+            for (let x = 0; x < analysis.length; x++) {
+                let height = analysis[x][z] ? analysis[x][z] * heightMultiplier : 0;
+                const cube = this.cubes[x][z];
+                if(this.materials[x][z]) {
+                    const hue = (x/analysis.length)*90+time*90;
+                    const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                    const emissive = new THREE.Color(0x000000).lerp(color, 1);
+                    this.materials[x][z].emissive.set(emissive);
+                    this.materials[x][z].color.set(color);
+                }
+                cube.scale.lerp(new THREE.Vector3(1, 1 + height, 1), 0.01 + deltaTime);
+            }
+        } 
+    }
+
+    setupGrid(analysis: number[][], widthSpacing: number) {
+        // this.cubes = analysis.map
+        for (let i = 0; i < analysis.length; i++) {
+            this.cubes[i] = []
+            this.materials[i] = [];
+        }               
+        for(let z = 0; z < analysis.length; z++) {
+            for (let x = 0; x < analysis.length; x++) {
                 const geometry = new THREE.BoxGeometry(1, 1, 1);
 
 
                 const material = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x000000 });
-                this.materials.push(material);
+                this.materials[x][z] = material;
                 const cube = new THREE.Mesh(geometry, material);
-                // set this.cubes at center of scene
-                cube.position.set(i * widthSpacing - ((analysis.length*widthSpacing)/2), 0, 0);
-                this.cubes[i] = cube;
+                // set this.cubes at center of scene, extruding each new line of cubes in the z-axis
+                cube.position.set(x * widthSpacing - ((analysis.length*widthSpacing)/2), 0, z * widthSpacing);
+                this.cubes[x][z] = cube;
                 this.scene.add(cube);
             }
         }
-     
-        const heightMultiplier = 0.005;
-        for (let i = skip; i < analysis.length; i++) {
-            const height = analysis[i] * heightMultiplier;
-            const cube = this.cubes[i];
-            if(this.materials[i]) {
-                const hue = (i/analysis.length)*90+time*90 + 10 * intensityMultiplier;
-                const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
-                const emissive = new THREE.Color(0x00000000).lerp(color, intensityMultiplier);
-                this.materials[i].emissive.set(emissive);
-                this.materials[i].color.set(color);
-            }
-            cube.scale.lerp(new THREE.Vector3(1, 1+ intensityMultiplier*2 + height, 1), 0.01 + deltaTime);
-            const pos = this.cubes[i].position; 
-            const zigZagX = 2*intensityMultiplier*Math.sin(i*0.05+time)*0.25;
-            const zigZagY = 0.5*intensityMultiplier*Math.cos(i*0.05+5*time) * 4 +  0.5*intensityMultiplier*Math.cos(i*0.05+2*time) * 4
-            const zigZagZ = 10*intensityMultiplier*0.5*Math.sin(intensityMultiplier*i*0.05+time);
-            
-            const x = pos.x + Math.sin(time*8) + 0.25 * Math.cos(time*2);
-            const y = analysis[i] * heightMultiplier - intensityMultiplier;
-            const z = pos.z + Math.cos(time) + 0.25 * Math.sin(time * 0.5);
-
-            cube.position.lerp(new THREE.Vector3(x + zigZagX, 15 + y + zigZagY, z+ zigZagZ), 0.1 + deltaTime);
-        } 
     }
 
 

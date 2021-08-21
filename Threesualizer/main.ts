@@ -15,9 +15,20 @@ const scene = new MainScene();
 const clock = new THREE.Clock();
 let time = 0;
 let dt = 0;
+let analysis3D: number[][] = [];
 
+function drawAnalysis(analysis: number[], time: number, dt: number) {
+    if(analysis3D.length == 0) {
+        analysis3D = new Array(analysis.length).fill([]);
+    }
 
-audio.analysis$.subscribe(analysis => scene.visualizeAudioAnalysis(analysis, time, dt));
+    analysis3D = (analysis3D.slice(1, analysis3D.length)).concat([analysis]);
+    console.log(analysis3D);
+    scene.visualizeAudioAnalysis(analysis3D, time, dt);
+}
+
+audio.analysis$.subscribe(analysis => drawAnalysis(analysis, time, dt));
+
 
 function mainLoop() {
     requestAnimationFrame(mainLoop);

@@ -68,7 +68,7 @@ export class AudioAnalyzer {
         this.analysis$.next(map);
     };
 
-    private filterData(rawData: Float32Array, samples = 128) {
+    private filterData(rawData: Float32Array, samples = 16) {
         const blockSize = Math.floor(rawData.length / samples); // the number of samples in each subdivision
         const filteredData = [];
         for (let i = 0; i < samples; i++) {
