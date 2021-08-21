@@ -41,10 +41,13 @@ combineLatest([songPlayer.onPlay$, audio.analysis$]).subscribe(([onPlay, analysi
 window.onclick = () => songPlayer.start();
 
 
+let oldTime = 0
 function mainLoop() {
     requestAnimationFrame(mainLoop);
     scene.render();
-    audio.analyzeAtTime(songPlayer.currentTime);
+    const dt = songPlayer.currentTime - oldTime
+    audio.analyzeAtTime(songPlayer.currentTime, dt);
+    oldTime = songPlayer.currentTime
 }
   
 mainLoop();

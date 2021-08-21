@@ -22,20 +22,20 @@ export class AudioAnalyzer {
             });
     }
 
-    analyzeAtTime(time: number) {
+    analyzeAtTime(time: number, dt: number) {
         if (this._rawBuffer?.sampleRate) {
-            const samples = this.samplesAtTime(time).map(sample => sample * 2 - 1) // 0..1 -> -1..1
+            const samples = this.samplesAtTime(time, dt).map(sample => sample * 2 - 1) // 0..1 -> -1..1
             let realData = Float64Array.from(samples);
-            let imaginaryData = Float64Array.from(Array.of(...samples).fill(1));
+            let imaginaryData = Float64Array.from(Array.of(...samples).fill(0));
             transform(realData, imaginaryData);
             // this.drawData(realData);
             this.drawData(samples);
         }
     }
 
-    private samplesAtTime(time: number) {
+    private samplesAtTime(time: number, dt: number) {
         const sampleRate = this._rawBuffer?.sampleRate as number;
-        const index = Math.max(sampleRate * (time - 1), 0);
+        const index = Math.max(sampleRate * (time), 0);
         const samples = this._rawBuffer?.getChannelData(0).slice(index, index + sampleRate) as Float32Array;
         const filtered = this.filterData(samples);
         const normalized = this.normalizeData(filtered);
@@ -69,7 +69,7 @@ export class AudioAnalyzer {
         this.analysis$.next(map);
     };
 
-    private filterData(rawData: Float32Array, samples = 16) {
+    private filterData(rawData: Float32Array, samples = 32) {
         const blockSize = Math.floor(rawData.length / samples); // the number of samples in each subdivision
         const filteredData = [];
         for (let i = 0; i < samples; i++) {
@@ -98,7 +98,7 @@ export class SongPlayer {
     _finish = false;
     public onPlay$ = new Subject();
     public time$: BehaviorSubject<number> = new BehaviorSubject(0);
-    public get currentTime() { return this._songPlayer.currentTime };
+    public get currentTime() { return this._songPlayer.currentTime; };
 
     constructor(private _source: string, private _volume = 1, private _loop: boolean = false) {
     }

@@ -57,19 +57,19 @@ export class MainScene {
         }
 
      
-        const heightMultiplier = 0.05;
+        const heightMultiplier = 1; // 0.05;
         for(let z = 0; z < analysis.length; z++) {
             for (let x = 0; x < analysis.length; x++) {
-                let height = analysis[x][z] ? analysis[x][z] * heightMultiplier : 0;
+                let height = (analysis[x][z] ? -400 + analysis[x][z] * heightMultiplier : 0);
                 const cube = this.cubes[x][z];
                 if(this.materials[x][z]) {
                     const hue = (x/analysis.length)*90+time*45;
                     const color = new THREE.Color(`hsl(${hue}, 50%, 50%)`);
-                    const emissive = new THREE.Color(0x000000).lerp(color, height*0.02);
+                    const emissive = new THREE.Color(0x000000).lerp(color, 0.001*height/heightMultiplier);
                     this.materials[x][z].emissive.set(emissive);
                     this.materials[x][z].color.set(color);
                 }
-                cube.scale.lerp(new THREE.Vector3(1, 1 + height, 1), 0.01);
+                cube.scale.lerp(new THREE.Vector3(1, height, 1), 0.01);
             }
         } 
     }
