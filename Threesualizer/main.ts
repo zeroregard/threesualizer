@@ -2,40 +2,49 @@ import './src/style.css';
 import * as THREE from 'three';
 import { AudioAnalyzer, SongPlayer } from './src/audio-analyzer';
 import { MainScene } from './src/main-scene';
+import { delay } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
 
 
 const audio = new AudioAnalyzer();
-audio.init('./genesis.mp3');
+audio.init('./song.mp3');
 
-const songPlayer = new SongPlayer('./genesis.mp3', 1, false);
-songPlayer.start();
+
+
 
 const scene = new MainScene();
 
-const clock = new THREE.Clock();
-let time = 0;
-let dt = 0;
+
 let analysis3D: number[][] = [];
 
-function drawAnalysis(analysis: number[], time: number, dt: number) {
+
+
+const songPlayer = new SongPlayer('./song.mp3', 1, false);
+songPlayer.init();
+
+function drawAnalysis(analysis: number[]) {
     if(analysis3D.length == 0) {
         analysis3D = new Array(analysis.length).fill([]);
     }
 
     analysis3D = (analysis3D.slice(1, analysis3D.length)).concat([analysis]);
-    console.log(analysis3D);
-    scene.visualizeAudioAnalysis(analysis3D, time, dt);
+    scene.visualizeAudioAnalysis(analysis3D, songPlayer.currentTime);
 }
 
-audio.analysis$.subscribe(analysis => drawAnalysis(analysis, time, dt));
+//songPlayer.onPlay$.subscribe(() => console.log('hello'));
+//audio.analysis$.subscribe(() => console.log('world'));
+
+combineLatest([songPlayer.onPlay$, audio.analysis$]).subscribe(([onPlay, analysis]) => {
+    drawAnalysis(analysis)
+})
+
+window.onclick = () => songPlayer.start();
 
 
 function mainLoop() {
     requestAnimationFrame(mainLoop);
-    dt = clock.getDelta();
-    time += dt;
-    scene.render(time);
-    audio.analyzeAtTime(time);
+    scene.render();
+    audio.analyzeAtTime(songPlayer.currentTime);
 }
   
 mainLoop();

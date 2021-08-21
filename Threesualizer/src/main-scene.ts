@@ -50,26 +50,26 @@ export class MainScene {
 
     private materials: THREE.MeshStandardMaterial[][] = [];
 
-    visualizeAudioAnalysis(analysis: number[][], time: number, deltaTime: number) {
+    visualizeAudioAnalysis(analysis: number[][], time: number) {
         const widthSpacing = 2;
         if(this.cubes.length == 0) {
             this.setupGrid(analysis, widthSpacing);
         }
 
      
-        const heightMultiplier = 0.005;
+        const heightMultiplier = 0.05;
         for(let z = 0; z < analysis.length; z++) {
             for (let x = 0; x < analysis.length; x++) {
                 let height = analysis[x][z] ? analysis[x][z] * heightMultiplier : 0;
                 const cube = this.cubes[x][z];
                 if(this.materials[x][z]) {
-                    const hue = (x/analysis.length)*90+time*90;
-                    const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
-                    const emissive = new THREE.Color(0x000000).lerp(color, 1);
+                    const hue = (x/analysis.length)*90+time*45;
+                    const color = new THREE.Color(`hsl(${hue}, 50%, 50%)`);
+                    const emissive = new THREE.Color(0x000000).lerp(color, height*0.02);
                     this.materials[x][z].emissive.set(emissive);
                     this.materials[x][z].color.set(color);
                 }
-                cube.scale.lerp(new THREE.Vector3(1, 1 + height, 1), 0.01 + deltaTime);
+                cube.scale.lerp(new THREE.Vector3(1, 1 + height, 1), 0.01);
             }
         } 
     }
@@ -112,7 +112,7 @@ export class MainScene {
 
     private _effects: Effects = new Effects(this.renderer, this.scene, this.camera);
 
-    render(time: number) {
+    render() {
         this._effects.render();
 
     }

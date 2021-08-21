@@ -17,7 +17,7 @@ export class Effects {
         const w = window.innerWidth || 1
         const h = window.innerHeight || 1
         this._composer.setSize(w, h);
-        this._shader  = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.5, 0.4, 0.85 );
+        this._shader  = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.7, 0.6, 0.85 );
         this._shader.resolution.set(1024, 1024);
         this._composer.addPass( this._renderPass );
         this._composer.addPass( this._shader );

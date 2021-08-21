@@ -1,5 +1,5 @@
 import { transform } from '../fft';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, delay, Subject, timer } from 'rxjs';
 
 export class AudioAnalyzer {
     private _audioContext = new AudioContext();
@@ -26,9 +26,10 @@ export class AudioAnalyzer {
         if (this._rawBuffer?.sampleRate) {
             const samples = this.samplesAtTime(time).map(sample => sample * 2 - 1) // 0..1 -> -1..1
             let realData = Float64Array.from(samples);
-            let imaginaryData = Float64Array.from(Array.of(...samples).fill(0));
+            let imaginaryData = Float64Array.from(Array.of(...samples).fill(1));
             transform(realData, imaginaryData);
-            this.drawData(realData);
+            // this.drawData(realData);
+            this.drawData(samples);
         }
     }
 
@@ -93,31 +94,34 @@ export class AudioAnalyzer {
 
 
 export class SongPlayer {
-    _songPlayer: HTMLEmbedElement | undefined;
+    _songPlayer: HTMLAudioElement | undefined;
     _finish = false;
+    public onPlay$ = new Subject();
+    public time$: BehaviorSubject<number> = new BehaviorSubject(0);
+    public get currentTime() { return this._songPlayer.currentTime };
 
     constructor(private _source: string, private _volume = 1, private _loop: boolean = false) {
-
     }
 
     stop() {
-        document.body.removeChild(this._songPlayer as HTMLEmbedElement);
+        document.body.removeChild(this._songPlayer);
     }
 
-    start() {
+    init() {
         this._finish = false;
-        this._songPlayer = document.createElement("embed");
-        this._songPlayer.setAttribute("src", this._source);
-        this._songPlayer.setAttribute("hidden", "true");
-        this._songPlayer.setAttribute("volume", this._volume.toString());
-        this._songPlayer.setAttribute("autostart", "true");
-        this._songPlayer.setAttribute("loop", this._loop ? "true" : "false");
+        this._songPlayer = document.createElement("audio");
+        this._songPlayer.onplay = (event) => this.onPlay$.next(event);
+        this._songPlayer.src = this._source;
         document.body.appendChild(this._songPlayer);
         return true;
     }
 
+    public start() {
+        this._songPlayer.play();
+    }
+
     remove() {
-        document.body.removeChild(this._songPlayer as HTMLEmbedElement);
+        document.body.removeChild(this._songPlayer);
         this._finish = true;
     }
 }
