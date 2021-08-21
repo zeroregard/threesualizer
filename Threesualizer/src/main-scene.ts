@@ -5,7 +5,7 @@ import { Effects } from './effects';
 
 export class MainScene {
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(85, innerWidth / window.innerHeight, 0.1, 1000);
     canvas = document.querySelector('#bg') as HTMLCanvasElement;
     renderer = new THREE.WebGLRenderer({
         antialias: true,
