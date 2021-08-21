@@ -13,6 +13,7 @@ export class MainScene {
     });
     cubes: THREE.Mesh[][] = [];
     lights: THREE.Light[] = [];
+    gridHelper = new THREE.GridHelper(1000, 50, 0xff33aa, 0xff33aa);
 
     controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -21,7 +22,7 @@ export class MainScene {
         const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.scale.set(5000, 0.1, 5000);
-        this.scene.add(plane);
+        //this.scene.add(plane);
 
         const light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0.5, 1);
@@ -30,8 +31,8 @@ export class MainScene {
         const ambientLight = new THREE.AmbientLight(0x222222);
         this.scene.add(ambientLight);
 
-        //const gridHelper = new THREE.GridHelper(200, 50);
-        //this.scene.add(gridHelper);
+        this.scene.add(this.gridHelper);
+
 
         
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -55,21 +56,26 @@ export class MainScene {
         if(this.cubes.length == 0) {
             this.setupGrid(analysis, widthSpacing);
         }
+        const hueGrid = time*360;
+        const colorGrid = new THREE.Color(`hsl${hueGrid} 50% 50%`);
+        // feed a better grid color here
 
      
         const heightMultiplier = 1; // 0.05;
         for(let z = 0; z < analysis.length; z++) {
             for (let x = 0; x < analysis.length; x++) {
                 let height = (analysis[x][z] ? -400 + analysis[x][z] * heightMultiplier : 0);
+                //let ratio = height/200;
+                // console.log(ratio);
                 const cube = this.cubes[x][z];
                 if(this.materials[x][z]) {
-                    const hue = (x/analysis.length)*90+time*45;
+                    const hue = (x/analysis.length)*360+time*360; // TODO: make colors change depending on height
                     const color = new THREE.Color(`hsl(${hue}, 50%, 50%)`);
                     const emissive = new THREE.Color(0x000000).lerp(color, 0.001*height/heightMultiplier);
                     this.materials[x][z].emissive.set(emissive);
                     this.materials[x][z].color.set(color);
                 }
-                cube.scale.lerp(new THREE.Vector3(1, height, 1), 0.01);
+                cube.scale.lerp(new THREE.Vector3(widthSpacing, height*0.5, 1), 0.01);
             }
         } 
     }
@@ -89,7 +95,7 @@ export class MainScene {
                 this.materials[x][z] = material;
                 const cube = new THREE.Mesh(geometry, material);
                 // set this.cubes at center of scene, extruding each new line of cubes in the z-axis
-                cube.position.set(x * widthSpacing - ((analysis.length*widthSpacing)/2), 0, z * widthSpacing);
+                cube.position.set(x * 1.25 * widthSpacing - ((analysis.length*widthSpacing)/2), 0, z * widthSpacing - ((analysis.length*widthSpacing)/2));
                 this.cubes[x][z] = cube;
                 this.scene.add(cube);
             }
