@@ -75,7 +75,7 @@ export class MainScene {
                     this.materials[x][z].emissive.set(emissive);
                     this.materials[x][z].color.set(color);
                 }
-                cube.scale.lerp(new THREE.Vector3(widthSpacing, height*0.5, 1), 0.01);
+                cube.scale.lerp(new THREE.Vector3(widthSpacing, height*0.5, 1), 0.1);
             }
         } 
     }
