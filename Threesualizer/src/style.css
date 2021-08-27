@@ -1,0 +1,11 @@
+@import url("https://use.typekit.net/jmk3xov.css");
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.audio-canvas {
+  pointer-events: none;
+}
