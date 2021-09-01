@@ -13,5 +13,5 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
   },
-  "include": ["./src", "main.ts", "declarations.d.ts", "fft.ts", "../threesualizer-react/src/visualization.ts"],
+  "include": ["./src", "main.ts", "declarations.d.ts", "../threesualizer-react/src/helpers/fft.ts", "../threesualizer-react/src/visualization.ts", "../threesualizer-react/src/helpers/audio-analyzer.ts"],
 }

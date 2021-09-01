@@ -1,6 +1,6 @@
-import { Canvas, RootState, useFrame } from '@react-three/fiber';
+import { Canvas, RootState } from '@react-three/fiber';
 import React, { useRef, useState } from 'react'
-import { map } from 'rxjs';
+import { map, skip, take } from 'rxjs';
 
 import * as THREE from 'three';
 import { Vector3 } from 'three';
@@ -8,20 +8,24 @@ import { Vector3 } from 'three';
 export function Visualization(props: any) {
     const materials = useRef<THREE.MeshStandardMaterial[][]>([]);
     const cubeMeshes = useRef<THREE.Mesh[][]>([]);
+    initialize();
 
-    useFrame(() => {
-        if(cubeMeshes.current.length === 0) {
-            setupGrid(props.analysis);
-        }
-        visualizeAudioAnalysis();
-    });
+    function initialize() {
+        props.analysis$.pipe(take(1)).subscribe((analysis: number[][]) => {
+            console.log(analysis);
+            setupGrid(analysis);
+        });
+        props.analysis$.pipe(skip(1)).subscribe((analysis: number[][]) => {
+            visualizeAudioAnalysis(analysis);
+        });
+    }
 
-    function visualizeAudioAnalysis() {
+    function visualizeAudioAnalysis(analysisGrid: number[][]) {
         const heightMultiplier = 1; // 0.05;
-        for(let z = 0; z < props.analysis.length; z++) {
-            for (let x = 0; x < props.analysis.length; x++) {
-                let height = (props.analysis[x][z] ? -400 + props.analysis[x][z] * heightMultiplier : 0) * 0.4;
-                setColor(height, heightMultiplier, props.analysis, props.time, x, z);
+        for(let z = 0; z < analysisGrid.length; z++) {
+            for (let x = 0; x < analysisGrid[z].length; x++) {
+                let height = (analysisGrid[x][z] ? -400 + analysisGrid[x][z] * heightMultiplier : 0) * 0.4;
+                setColor(height, heightMultiplier, analysisGrid, props.time, x, z);
                 setTransform(height, props.analysis, props.time, x, z);  
             }
         } 
@@ -73,8 +77,10 @@ export function Visualization(props: any) {
             }
         }
     }
+    
+    console.log(cubeMeshes);
 
-    cubeMeshes.current.map((el, x) => {
+    /*cubeMeshes.currentmap((el, x) => {
         const z = x/cubeMeshes.current[x].length;
         const mesh = cubeMeshes.current[x][z];
         return  <mesh
@@ -84,13 +90,12 @@ export function Visualization(props: any) {
                 <boxGeometry args={[1, 1, 1]} />
                 <meshStandardMaterial color={'orange'} />
             r</mesh>
-      });
+      }); */
 
 
     return (
         
-        <group >
-            { cubeMeshes }
+        <group ref={cubeMeshes}>
         </group >
 
       )

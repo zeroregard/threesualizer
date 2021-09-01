@@ -1,5 +1,6 @@
-import { transform } from '../fft';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { transform } from './fft';
+import { Subject } from 'rxjs';
+import { song } from 'song'
 
 export class AudioAnalyzer {
     private _audioContext = new AudioContext();
@@ -7,15 +8,15 @@ export class AudioAnalyzer {
     public analysis$: Subject<number[]> = new Subject();
 
     constructor() {
-        window.AudioContext = window.AudioContext;
         this._audioContext = new AudioContext();
         this._audioContext.resume();
-
     }
 
     init(url: RequestInfo) {
         fetch(url)
+            .then(response => {console.log(response); return response;})
             .then(response => response.arrayBuffer())
+            .then(response => {console.log(response); return response})
             .then(arrayBuffer => this._audioContext.decodeAudioData(arrayBuffer))
             .then(audioBuffer => {
                 this._rawBuffer = audioBuffer;
@@ -28,8 +29,6 @@ export class AudioAnalyzer {
             let realData = Float64Array.from(samples);
             let imaginaryData = Float64Array.from(Array.of(...samples).fill(0));
             transform(realData, imaginaryData);
-            let normalizedRealData = this.normalizeData(Array.from(realData));
-            // this.drawData(normalizedRealData);
             this.drawData(samples);
         }
     }
@@ -89,40 +88,4 @@ export class AudioAnalyzer {
         return filteredData.map(n => n * multiplier);
     }
 
-}
-
-
-
-
-export class SongPlayer {
-    _songPlayer: HTMLAudioElement | undefined;
-    _finish = false;
-    public onPlay$ = new Subject();
-    public time$: BehaviorSubject<number> = new BehaviorSubject(0);
-    public get currentTime() { return this._songPlayer.currentTime; };
-
-    constructor(private _source: string, private _volume = 1, private _loop: boolean = false) {
-    }
-
-    stop() {
-        document.body.removeChild(this._songPlayer);
-    }
-
-    init() {
-        this._finish = false;
-        this._songPlayer = document.createElement("audio");
-        this._songPlayer.onplay = (event) => this.onPlay$.next(event);
-        this._songPlayer.src = this._source;
-        document.body.appendChild(this._songPlayer);
-        return true;
-    }
-
-    public start() {
-        this._songPlayer.play();
-    }
-
-    remove() {
-        document.body.removeChild(this._songPlayer);
-        this._finish = true;
-    }
 }

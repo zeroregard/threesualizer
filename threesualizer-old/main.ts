@@ -1,5 +1,5 @@
 import './src/style.css';
-import { AudioAnalyzer, SongPlayer } from './src/audio-analyzer';
+import { AudioAnalyzer, SongPlayer } from '../threesualizer-react/src/helpers/audio-analyzer';
 import { MainScene } from './src/main-scene';
 import { combineLatest } from 'rxjs';
 
