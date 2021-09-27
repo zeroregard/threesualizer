@@ -14,7 +14,8 @@ function drawAnalysis(analysis: number[]) {
         analysis3D = new Array(analysis.length).fill([]);
     }
     analysis3D = (analysis3D.slice(1, analysis3D.length)).concat([analysis]);
-    scene.visualizeAudioAnalysis(analysis3D, 0);
+    const time = new Date().getTime();
+    scene.visualizeAudioAnalysis(analysis3D, time/1000);
 }
 
 async function fftFactory(size = 2048): Promise<any> {
@@ -27,8 +28,8 @@ async function fftFactory(size = 2048): Promise<any> {
     source.connect(analyser);
     const convolver = audioCtx.createConvolver();
     convolver.normalize = true;
-    // source.connect(convolver);
-    // convolver.connect(analyser);
+    source.connect(convolver);
+    convolver.connect(analyser);
     var dataArray = new Uint8Array(bufferLength);
     return () => {
         analyser.getByteTimeDomainData(dataArray);

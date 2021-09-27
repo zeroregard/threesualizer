@@ -29,7 +29,7 @@ export class MainScene {
         const ambientLight = new THREE.AmbientLight(0x222222, this.ambientLightStrength);
         this.scene.add(ambientLight);
 
-        this.scene.add(this.gridHelper);
+        // this.scene.add(this.gridHelper);
         this.camera.position.setZ(30);
 
         const spaceTexture = new THREE.TextureLoader().load('space.jpg');
