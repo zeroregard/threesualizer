@@ -49,10 +49,10 @@ export class MainScene {
 
         // TODO: set new grid color here
      
-        const heightMultiplier = 1; // 0.05;
+        const heightMultiplier = 5; // 0.05;
         for(let z = 0; z < analysis.length; z++) {
             for (let x = 0; x < analysis.length; x++) {
-                let height = (analysis[x][z] ? -400 + analysis[x][z] * heightMultiplier : 0) * 0.4;
+                let height = (analysis[x][z] ? (analysis[x][z] - 128) * heightMultiplier : 0) * 0.5;
                 this.setColor(height, heightMultiplier, analysis, time, x, z);
                 this.setTransform(height, analysis, time, x, z);  
 

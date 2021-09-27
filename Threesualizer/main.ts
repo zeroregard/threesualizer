@@ -1,52 +1,50 @@
 import './src/style.css';
-import { AudioAnalyzer, SongPlayer } from './src/audio-analyzer';
 import { MainScene } from './src/main-scene';
-import { combineLatest } from 'rxjs';
-
-
-const audio = new AudioAnalyzer();
-const songDir = './song.mp3'
-audio.init(songDir);
-
-
-
+import { fromEvent, take } from 'rxjs';
 
 const scene = new MainScene();
 
-
 let analysis3D: number[][] = [];
 
-
-
-const songPlayer = new SongPlayer(songDir, 1, false);
-songPlayer.init();
-
 function drawAnalysis(analysis: number[]) {
+    if(!analysis) {
+        return;
+    }
     if(analysis3D.length == 0) {
         analysis3D = new Array(analysis.length).fill([]);
     }
-
     analysis3D = (analysis3D.slice(1, analysis3D.length)).concat([analysis]);
-    scene.visualizeAudioAnalysis(analysis3D, songPlayer.currentTime);
+    scene.visualizeAudioAnalysis(analysis3D, 0);
 }
 
-//songPlayer.onPlay$.subscribe(() => console.log('hello'));
-//audio.analysis$.subscribe(() => console.log('world'));
+async function fftFactory(size = 2048): Promise<any> {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audioCtx = new AudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = size;
+    var bufferLength = analyser.frequencyBinCount;
+    source.connect(analyser);
+    const convolver = audioCtx.createConvolver();
+    convolver.normalize = true;
+    // source.connect(convolver);
+    // convolver.connect(analyser);
+    var dataArray = new Uint8Array(bufferLength);
+    return () => {
+        analyser.getByteTimeDomainData(dataArray);
+        return dataArray;
+    };
+}
 
-combineLatest([songPlayer.onPlay$, audio.analysis$]).subscribe(([, analysis]) => {
-    drawAnalysis(analysis)
-})
-
-window.onclick = () => songPlayer.start();
-
-
-let oldTime = 0
-function mainLoop() {
-    requestAnimationFrame(mainLoop);
+function mainLoop(getFFT: Function) {
+    requestAnimationFrame(() => mainLoop(getFFT));
     scene.render();
-    const dt = songPlayer.currentTime - oldTime;
-    audio.analyzeAtTime(songPlayer.currentTime, dt);
-    oldTime = songPlayer.currentTime
+    drawAnalysis(getFFT());
+    // drawAnalysis(getFFT());
+    // drawAnalysis(Array.from(mic.getChannelData(0)));
 }
-  
-mainLoop();
+
+
+fromEvent(document, 'click').pipe(take(1)).subscribe(async () => {
+    mainLoop(await fftFactory(64));
+});
